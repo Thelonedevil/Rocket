@@ -9,7 +9,7 @@ use rocket::http::ContentType;
 use normpath::PathExt;
 
 pub(crate) type Callback =
-    Box<dyn Fn(&mut Engines) -> Result<(), Box<dyn Error>> + Send + Sync + 'static>;
+    Box<dyn Fn((&mut Engines,&mut HashMap<String,TemplateInfo>)) -> Result<(), Box<dyn Error>> + Send + Sync + 'static>;
 
 pub(crate) struct Context {
     /// The root of the template directory.
@@ -75,7 +75,7 @@ impl Context {
         }
 
         let mut engines = Engines::init(&templates)?;
-        if let Err(e) = callback(&mut engines) {
+        if let Err(e) = callback((&mut engines,&mut templates)) {
             error_!("Template customization callback failed.");
             error_!("{}", e);
             return None;

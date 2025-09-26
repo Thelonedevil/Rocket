@@ -1,4 +1,5 @@
 use std::borrow::Cow;
+use std::collections::HashMap;
 use std::path::PathBuf;
 
 use rocket::{Rocket, Orbit, Ignite, Sentinel};
@@ -30,13 +31,13 @@ pub struct Template {
 }
 
 #[derive(Debug)]
-pub(crate) struct TemplateInfo {
+pub struct TemplateInfo {
     /// The complete path, including `template_dir`, to this template, if any.
-    pub(crate) path: Option<PathBuf>,
+    pub path: Option<PathBuf>,
     /// The extension for the engine of this template.
-    pub(crate) engine_ext: &'static str,
+    pub engine_ext: &'static str,
     /// The extension before the engine extension in the template, if any.
-    pub(crate) data_type: ContentType
+    pub data_type: ContentType
 }
 
 impl Template {
@@ -102,7 +103,7 @@ impl Template {
     /// }
     /// ```
     pub fn custom<F: Send + Sync + 'static>(f: F) -> impl Fairing
-        where F: Fn(&mut Engines)
+        where F: Fn((&mut Engines,&mut HashMap<String,TemplateInfo>))
     {
         Self::try_custom(move |engines| { f(engines); Ok(()) })
     }
@@ -134,7 +135,7 @@ impl Template {
     /// }
     /// ```
     pub fn try_custom<F: Send + Sync + 'static>(f: F) -> impl Fairing
-        where F: Fn(&mut Engines) -> Result<(), Box<dyn std::error::Error>>
+        where F: Fn((&mut Engines,&mut HashMap<String,TemplateInfo>)) -> Result<(), Box<dyn std::error::Error>>
     {
         TemplateFairing { callback: Box::new(f) }
     }
